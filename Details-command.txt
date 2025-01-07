@@ -1,0 +1,100 @@
+
+AWS:
+# Instance and key pair creation
+- Go to AWS
+- Go to EC2
+- Click on Launch Instance
+- Details:
+  Put the instance name
+  Machine: Ubuntu
+  Instance Type: t2.medium
+  Storage: 15gb
+  Key Pair: Create new key pair
+  Network stting: Tick all things
+- Launch the instance
+- Go to created instance
+- Click on connect -> SSH client
+	Copy the ssh command
+
+Command Prompt:
+- Paste the ssh command
+- sudo apt-get update
+- sudo apt-get install docker.ip -y
+
+#Kubernetes Cluster : Kind Cluster
+- docker ps (you will get error)
+  Solution:
+	sudo usermod -aG docker $USER && newgrp docker
+- docker ps
+
+# Clonning the kind-vote repo
+- git clone https://github.com/konboot/Prometheus-Grafana-with-Kubernetes.git
+- cd Prometheus-Grafana-with-Kubernetes/k8s-kind-voting-app/kind-cluster
+
+# In config.yml we need to create 1 control-plane and two nodes
+- chmod +x .
+- ./install_kind.sh
+
+# Kind-Cluster creation
+- kind create cluster --config=config.yml
+- ./install_kubectl.sh
+
+#Now we need to add application in kubernetes
+#ArgoCd: Take Manifest file put in kubernetes
+
+- cd .. -> cd k8s-specifications/
+- kubectl apply -f .
+Incase you are getting after this command:
+Solution:  unset KUBECONFIG
+		export KUBECONFIG=~/.kube/config(path to your config)
+kind get kubeconfig --name mycluster > mycluster-kubeconfig
+export KUBECONFIG=./mycluster-kubeconfig
+cat ~/.kube/config(path to your config)
+
+#Helm is a package manager for kubernetes manifest files
+- kubectl get all
+- cd ..
+-  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+- chmod +x get_helm.sh
+-  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+- helm repo list
+- helm repo add stable https://charts.helm.sh/stable
+- helm repo update
+- kubectl create namespace monitoring
+Getting Error: kind get kubeconfig --name mycluster(Your Cluster_name) > C:\Users\PIKACHU\.kube\config (Kubernetes config file path)
+- helm install kind-prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --set prometheus.service.nodePort=30000 --set prometheus.service.type=NodePort --set grafana.service.nodePort=31000 --set grafana.service.type=NodePort --set alertmanager.service.nodePort=32000 --set alertmanager.service.type=NodePort --set prometheus-node-exporter.service.nodePort=32001 --set prometheus-node-exporter.service.type=NodePort
+- kubectl get svc -n monitoring
+- kubectl get namespace
+
+#PROMETHEUS
+- kubectl port-forward svc/kind-prometheus-kube-prome-prometheus -n monitoring 9090:9090 --address=0.0.0.0 &
+#Adding Prometheus port in instance
+AWS
+- Go to Instance
+- Go to security
+- Open the security
+- Click on Edit the inbound rule
+- Click on add rule
+  Prometheus: Give port : 9090
+              Custom: Anywhere (IPV4)
+              description:Prometheus
+- check the public IP address with port 9090 (54.52.13.122:9090)for prometheus
+
+- kubectl port-forward svc/kind-prometheus-grafana -n monitoring 31000:80 --address=0.0.0.0 &
+#Adding Grafana port in instance
+AWS
+- Go to Instance
+- Go to security
+- Open the security
+- Click on Edit the inbound rule
+- Click on add rule
+  Prometheus: Give port : 3000
+              Custom: Anywhere (IPV4)
+              description:Grafna
+- check the public IP address with port 3000 (54.52.13.122:3000) for Grafana
+
+Same way you can the k8s Kind Voting App on 5000
+
+
+
+
